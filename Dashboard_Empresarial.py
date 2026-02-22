@@ -118,25 +118,38 @@ try:
             texto_periodo = mes_visual
             intervalo_ms = 5 * 24 * 60 * 60 * 1000
 
-        # --- MÉTRICAS ---
-        # Somamos os valores absolutos para as métricas de exibição
-        Receitas_total = df_mes_Receitas['Valor'].abs().sum()
-        saidas_total_abs = df_mes_saidas['Valor'].abs().sum()
+        # --- MÉTRICAS (AJUSTADAS PARA RESPEITAR O FILTRO ANUAL) ---
+        if ver_tudo:
+            df_para_metricas = df[df["Categoria"].isin(cat_escolhidas)].copy()
+            label_periodo = "Anual"
+        else:
+            df_para_metricas = df_mes.copy()
+            label_periodo = "Mensal"
+
+        # Identificação de investimentos no set de métricas atual
+        is_invest_met = df_para_metricas['Categoria'].str.contains("Investimento", case=False, na=False)
+
+        # Cálculo de Receitas e Despesas do período (mês ou ano)
+        rec_periodo = df_para_metricas[
+            ((df_para_metricas['Valor'] > 0) & (~is_invest_met)) | ((df_para_metricas['Valor'] < 0) & (is_invest_met))]
+        desp_periodo = df_para_metricas[
+            ((df_para_metricas['Valor'] < 0) & (~is_invest_met)) | ((df_para_metricas['Valor'] > 0) & (is_invest_met))]
+
+        Receitas_total = rec_periodo['Valor'].abs().sum()
+        saidas_total_abs = desp_periodo['Valor'].abs().sum()
         saldo_mensal = Receitas_total - saidas_total_abs
 
-        data_limite = df_mes_base['Data'].max()
-
-        # Para o saldo acumulado, precisamos garantir que o investimento positivo subtraia e o negativo some
+        # Saldo Acumulado (Sempre considera do início até a data limite do mês selecionado ou fim do ano)
+        data_limite = df_mes_base['Data'].max() if not ver_tudo else df['Data'].max()
         df_acum_temp = df[df['Data'] <= data_limite].copy()
         is_invest_acum = df_acum_temp['Categoria'].str.contains("Investimento", case=False, na=False)
-        # Invertemos o sinal do investimento para o cálculo do saldo:
         df_acum_temp.loc[is_invest_acum, 'Valor'] = -df_acum_temp.loc[is_invest_acum, 'Valor']
         saldo_acumulado = df_acum_temp['Valor'].sum()
 
         m1, m2, m3, m4 = st.columns(4)
-        m1.metric("Receitas", f"R$ {Receitas_total:,.2f}")
-        m2.metric("Despesas", f"R$ {saidas_total_abs:,.2f}")
-        m3.metric("Saldo Mensal", f"R$ {saldo_mensal:,.2f}", delta=f"{saldo_mensal:,.2f}")
+        m1.metric(f"Receitas ({label_periodo})", f"R$ {Receitas_total:,.2f}")
+        m2.metric(f"Despesas ({label_periodo})", f"R$ {saidas_total_abs:,.2f}")
+        m3.metric(f"Saldo ({label_periodo})", f"R$ {saldo_mensal:,.2f}", delta=f"{saldo_mensal:,.2f}")
         m4.metric("Saldo Acumulado", f"R$ {saldo_acumulado:,.2f}", delta=f"{saldo_acumulado:,.2f}")
 
         st.divider()
@@ -210,8 +223,10 @@ try:
                 fatura_dt = dt
             return fatura_dt.strftime('%m/%Y')
 
+
         # Inclui Cartão de Crédito e Cartão Corporativo conforme detectado na sua planilha
-        df_cartao_base = df[df['Forma de Pagamento'].str.contains("Cartão de Crédito|Cartão Corporativo", case=False, na=False)].copy()
+        df_cartao_base = df[
+            df['Forma de Pagamento'].str.contains("Cartão de Crédito|Cartão Corporativo", case=False, na=False)].copy()
 
         if not df_cartao_base.empty:
             df_cartao_base['Mes_Fatura'] = df_cartao_base.apply(calcular_fatura, axis=1)
@@ -336,9 +351,11 @@ try:
                 [resumo_cat, pd.DataFrame({"Categoria": ["TOTAL"], "Valor": [resumo_cat["Valor"].sum()]})],
                 ignore_index=True)
 
+
             def highlight_total(row):
                 return ['background-color: #990000; color: white; font-weight: bold' if row.Categoria == 'TOTAL' else ''
                         for _ in row]
+
 
             st.dataframe(resumo_final.style.apply(highlight_total, axis=1).format({"Valor": "R$ {:,.2f}"}),
                          use_container_width=True, hide_index=True)
@@ -363,9 +380,11 @@ try:
             df_lista = df_lista.sort_values("Data", ascending=(ordem == "Mais antigas"))
             df_lista['Data'] = df_lista['Data'].dt.strftime('%d/%m/%Y')
 
+
             def color_valor_custom(val):
                 color = '#2ecc71' if val > 0 else '#e74c3c'
                 return f'color: {color}; font-weight: bold'
+
 
             st.dataframe(df_lista.style.map(color_valor_custom, subset=['Valor']).format({"Valor": "R$ {:,.2f}"}),
                          use_container_width=True, hide_index=True)
