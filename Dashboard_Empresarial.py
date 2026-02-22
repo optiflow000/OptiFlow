@@ -168,25 +168,6 @@ try:
             hovertemplate="<b>Data:</b> %{x|%d/%m/%Y}<br><b>Valor Real:</b> R$ %{customdata[1]:,.2f}<br><b>Categoria:</b> %{customdata[0]}<extra></extra>")
         st.plotly_chart(fig_evolucao, use_container_width=True)
 
-        # --- SEÇÃO: EVOLUÇÃO DE INVESTIMENTOS ---
-        st.divider()
-        st.subheader(f"💰 Evolução de Investimentos ({texto_periodo})")
-        df_invest = df_para_investimentos[
-            df_para_investimentos["Categoria"].str.contains("Investimento", case=False, na=False)]
-
-        if not df_invest.empty:
-            df_invest_plot = df_invest.groupby(['Data', 'Categoria'])['Valor'].sum().reset_index()
-            fig_invest = px.line(df_invest_plot, x='Data', y='Valor', color='Categoria', markers=True,
-                                 template="plotly_dark", color_discrete_sequence=px.colors.sequential.Greens_r,
-                                 labels={"Valor": "Valor (R$)", "Data": "Data"})
-
-            fig_invest.update_xaxes(tickformat="%d/%m/%Y", dtick=intervalo_ms, tick0=data_referencia, tickmode="linear")
-            fig_invest.update_traces(
-                hovertemplate="<b>Data:</b> %{x|%d/%m/%Y}<br><b>Movimentação:</b> R$ %{y:,.2f}<extra></extra>")
-            st.plotly_chart(fig_invest, use_container_width=True)
-        else:
-            st.info("Nenhum registro de 'Investimento' encontrado.")
-
         # --- AJUSTE SOLICITADO: SEÇÃO DE RENDIMENTOS ---
         st.divider()
         st.subheader(f"📈 Evolução de Rendimentos ({texto_periodo})")
