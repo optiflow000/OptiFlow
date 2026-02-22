@@ -193,6 +193,8 @@ try:
             fig_rend.update_traces(
                 hovertemplate="<b>Data:</b> %{x|%d/%m/%Y}<br><b>Rendimento:</b> R$ %{y:,.2f}<extra></extra>")
             st.plotly_chart(fig_rend, use_container_width=True)
+            # MENSAGEM ADICIONAL ABAIXO DO GRÁFICO
+            st.info(f"🍃 Saldo de movimentações em rendimentos em {texto_periodo}: R$ {total_rend:,.2f}")
         else:
             st.info("Nenhum registro de 'Rendimentos' encontrado para este período.")
 
