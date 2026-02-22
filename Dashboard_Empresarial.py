@@ -243,9 +243,9 @@ try:
             if not df_fatura_atual.empty:
                 st.markdown(f"**Lançamentos da Fatura de {mes_visual}:**")
 
-                # --- AJUSTE: REMOVIDA A COLUNA 'Parcelas' QUE NÃO EXISTE NA SUA PLANILHA ---
+                # --- AJUSTE REALIZADO: .fillna("") para remover o "None" da visualização ---
                 df_fatura_lista = df_fatura_atual[
-                    ['Data', 'Categoria', 'Valor', 'Descrição (Opcional)']].copy()
+                    ['Data', 'Categoria', 'Valor', 'Descrição (Opcional)']].fillna("").copy()
                 df_fatura_lista['Data'] = df_fatura_lista['Data'].dt.strftime('%d/%m/%Y')
 
 
