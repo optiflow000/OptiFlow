@@ -51,10 +51,11 @@ def load_data(ano_selecionado):
 
     return df
 
+
 # --- INTERFACE (SIDEBAR E DASHBOARD) ---
 st.sidebar.title("Filtros")
 
-# Seletor de Ano que define qual aba será puxada
+# Este é o único seletor de ano necessário - ele define a aba da planilha
 ano_escolhido = st.sidebar.selectbox("Selecione o Ano", list(MAPA_GIDS.keys()))
 
 try:
@@ -65,16 +66,11 @@ try:
         st.warning(f"A aba de {ano_escolhido} parece não ter dados válidos.")
     else:
         st.title(f"📊 Dashboard Financeiro - {ano_escolhido}")
-        # --- SIDEBAR (FILTROS) ---
+
         st.sidebar.header("Configurações de Filtro")
 
-        # --- ALTERAÇÃO 2: Filtro de Ano ---
-        lista_anos = sorted(df['Ano'].unique().tolist(), reverse=True)
-        ano_selecionado = st.sidebar.selectbox("Selecione o Ano", lista_anos)
-
-        # Filtrar o dataframe de meses baseado no ano escolhido
-        df_meses = df[df['Ano'] == ano_selecionado][['Mes_Ano_Exibicao', 'Mes_Ano']].drop_duplicates().sort_values(
-            'Mes_Ano', ascending=False)
+        # Pegamos os meses disponíveis nos dados carregados para o filtro mensal
+        df_meses = df[['Mes_Ano_Exibicao', 'Mes_Ano']].drop_duplicates().sort_values('Mes_Ano', ascending=False)
         lista_exibicao = df_meses['Mes_Ano_Exibicao'].tolist()
 
         mes_visual = st.sidebar.selectbox("Mês de análise detalhada", lista_exibicao)
@@ -82,7 +78,7 @@ try:
 
         ver_tudo = st.sidebar.checkbox("Visualizar histórico anual", value=False)
 
-        # Lógica para Selecionar Todas as Categorias
+        # Lógica de Categorias
         lista_cat = sorted([c for c in df["Categoria"].unique().tolist() if c])
 
         if "selecao_categorias" not in st.session_state:
@@ -93,48 +89,35 @@ try:
 
         cat_escolhidas = st.sidebar.multiselect("Filtrar Categorias", lista_cat, key="selecao_categorias")
 
-        # --- PREPARAÇÃO DOS DADOS (LÓGICA DE FILTRO ADICIONADA) ---
+        # --- PREPARAÇÃO DOS DADOS ---
         df_mes_base = df[df['Mes_Ano'] == mes_selecionado]
         df_mes = df_mes_base[df_mes_base["Categoria"].isin(cat_escolhidas)]
 
-        # Criamos uma máscara para identificar o que é investimento
         is_invest = df_mes['Categoria'].str.contains("Investimento", case=False, na=False)
-
-        # Receitas: (Outros > 0) OU (Investimento < 0 [Resgate])
         df_mes_Receitas = df_mes[((df_mes['Valor'] > 0) & (~is_invest)) | ((df_mes['Valor'] < 0) & (is_invest))]
-
-        # Saídas: (Outros < 0) OU (Investimento > 0 [Aplicação])
         df_mes_saidas = df_mes[((df_mes['Valor'] < 0) & (~is_invest)) | ((df_mes['Valor'] > 0) & (is_invest))]
-
-        data_referencia = df['Data'].min().replace(day=1)
 
         # --- LÓGICA DE FILTRAGEM POR PERÍODO ---
         if ver_tudo:
-            # Filtra os dados apenas para o ano que está selecionado no seletor
-            df_para_evolucao = df[(df['Ano'] == ano_selecionado) & (df["Categoria"].isin(cat_escolhidas))]
-            df_para_investimentos = df[df['Ano'] == ano_selecionado]
-            texto_periodo = f"Histórico de {ano_selecionado}"
-            # Intervalo de 30 dias para não poluir o eixo X em uma visão anual
+            df_para_evolucao = df[df["Categoria"].isin(cat_escolhidas)]
+            df_para_investimentos = df
+            texto_periodo = f"Histórico de {ano_escolhido}"
             intervalo_ms = 30 * 24 * 60 * 60 * 1000
         else:
-            # Mantém a visão apenas do mês selecionado
             df_para_evolucao = df_mes
             df_para_investimentos = df_mes
             texto_periodo = mes_visual
             intervalo_ms = 5 * 24 * 60 * 60 * 1000
 
-        # --- MÉTRICAS DO MÊS ---
-        # Somamos os valores absolutos para as métricas de exibição
+        # --- MÉTRICAS ---
         Receitas_total = df_mes_Receitas['Valor'].abs().sum()
         saidas_total_abs = df_mes_saidas['Valor'].abs().sum()
         saldo_mensal = Receitas_total - saidas_total_abs
 
+        # Cálculo do Saldo Acumulado (considerando todo o histórico da aba até o mês selecionado)
         data_limite = df_mes_base['Data'].max()
-
-        # Para o saldo acumulado, precisamos garantir que o investimento positivo subtraia e o negativo some
         df_acum_temp = df[df['Data'] <= data_limite].copy()
         is_invest_acum = df_acum_temp['Categoria'].str.contains("Investimento", case=False, na=False)
-        # Invertemos o sinal do investimento para o cálculo do saldo:
         df_acum_temp.loc[is_invest_acum, 'Valor'] = -df_acum_temp.loc[is_invest_acum, 'Valor']
         saldo_acumulado = df_acum_temp['Valor'].sum()
 
@@ -389,4 +372,3 @@ try:
 
 except Exception as e:
     st.error(f"Erro crítico no processamento: {e}")
-#Teste
