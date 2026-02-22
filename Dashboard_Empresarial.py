@@ -118,7 +118,7 @@ try:
             texto_periodo = mes_visual
             intervalo_ms = 5 * 24 * 60 * 60 * 1000
 
-        # --- MÉTRICAS (AJUSTADAS PARA RESPEITAR O FILTRO ANUAL E LÓGICA DE ACUMULADO) ---
+        # --- MÉTRICAS (AJUSTADAS PARA RESPEITAR O FILTRO ANUAL E LÓGICA DE ACUMULADO ENTRE ANOS) ---
         if ver_tudo:
             df_para_metricas = df[df["Categoria"].isin(cat_escolhidas)].copy()
             label_periodo = "Anual"
@@ -141,13 +141,32 @@ try:
         saidas_total_abs = desp_periodo['Valor'].abs().sum()
         saldo_mensal = Receitas_total - saidas_total_abs
 
-        # --- LÓGICA DE SALDO ACUMULADO CORRIGIDA ---
-        # Considera todos os lançamentos desde o início até a data final do período visualizado
-        df_acum_temp = df[df['Data'] <= data_limite_acumulado].copy()
-        is_invest_acum = df_acum_temp['Categoria'].str.contains("Investimento", case=False, na=False)
-        # Invertemos o sinal do investimento para o cálculo do saldo de caixa:
-        df_acum_temp.loc[is_invest_acum, 'Valor'] = -df_acum_temp.loc[is_invest_acum, 'Valor']
-        saldo_acumulado = df_acum_temp['Valor'].sum()
+        # --- LÓGICA DE SALDO ACUMULADO (SOMA ANOS ANTERIORES) ---
+        saldo_anos_anteriores = 0.0
+        anos_disponiveis = sorted(list(MAPA_GIDS.keys()))
+
+        for ano in anos_disponiveis:
+            if int(ano) < int(ano_escolhido):
+                try:
+                    df_ant = load_data(ano)
+                    if not df_ant.empty:
+                        is_invest_ant = df_ant['Categoria'].str.contains("Investimento", case=False, na=False)
+                        # Copia para não alterar o cache
+                        df_ant_calc = df_ant.copy()
+                        df_ant_calc.loc[is_invest_ant, 'Valor'] = -df_ant_calc.loc[is_invest_ant, 'Valor']
+                        saldo_anos_anteriores += df_ant_calc['Valor'].sum()
+                except:
+                    pass
+            else:
+                break
+
+        # Saldo do ano atual até a data limite
+        df_acum_atual = df[df['Data'] <= data_limite_acumulado].copy()
+        is_invest_acum = df_acum_atual['Categoria'].str.contains("Investimento", case=False, na=False)
+        df_acum_atual.loc[is_invest_acum, 'Valor'] = -df_acum_atual.loc[is_invest_acum, 'Valor']
+        saldo_ano_atual = df_acum_atual['Valor'].sum()
+
+        saldo_acumulado = saldo_anos_anteriores + saldo_ano_atual
 
         m1, m2, m3, m4 = st.columns(4)
         m1.metric(f"Receitas ({label_periodo})", f"R$ {Receitas_total:,.2f}")
