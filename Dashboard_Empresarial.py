@@ -211,7 +211,7 @@ try:
                 fatura_dt = dt
             return fatura_dt.strftime('%m/%Y')
 
-        # Filtro ajustado para pegar "Cartão de Crédito" OU "Cartão Corporativo"
+        # REGRA ADICIONADA: Busca Cartão de Crédito e Cartão Corporativo
         df_cartao_base = df[df['Forma de Pagamento'].str.contains("Cartão de Crédito|Cartão Corporativo", case=False, na=False)].copy()
 
         if not df_cartao_base.empty:
@@ -235,6 +235,7 @@ try:
                 template="plotly_dark",
                 labels={"Valor": "Valor da Fatura (R$)", "Mes_Fatura": "Mês da Fatura"}
             )
+            # CORREÇÃO DE ERRO: Removido 'f' da string para evitar erro de chaves no Plotly
             fig_cartao.update_traces(
                 hovertemplate="<b>Fatura:</b> %{x}<br><b>Valor Total:</b> R$ %{y:,.2f}<extra></extra>"
             )
@@ -324,8 +325,9 @@ try:
                     col_freq: ["Custos Fixos", "Custos Variáveis", "Fixos", "Recorrentes", "Não Recorrentes"]},
                 labels={"Valor_Abs": "Total (R$)", col_freq: "Recorrência"}
             )
+            # CORREÇÃO DE ERRO: Removido 'f' da string
             fig_frequencia.update_traces(
-                hovertemplate=f"<b>{col_freq}:</b> %{{x}}<br><b>Total:</b> R$ %{{y:,.2f}<extra></extra>"
+                hovertemplate="<b>" + col_freq + ":</b> %{x}<br><b>Total:</b> R$ %{y:,.2f}<extra></extra>"
             )
             st.plotly_chart(fig_frequencia, use_container_width=True)
         else:
