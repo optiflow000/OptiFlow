@@ -118,13 +118,15 @@ try:
             texto_periodo = mes_visual
             intervalo_ms = 5 * 24 * 60 * 60 * 1000
 
-        # --- MÉTRICAS (AJUSTADAS PARA RESPEITAR O FILTRO ANUAL) ---
+        # --- MÉTRICAS (AJUSTADAS PARA RESPEITAR O FILTRO ANUAL E LÓGICA DE ACUMULADO) ---
         if ver_tudo:
             df_para_metricas = df[df["Categoria"].isin(cat_escolhidas)].copy()
             label_periodo = "Anual"
+            data_limite_acumulado = df['Data'].max()
         else:
             df_para_metricas = df_mes.copy()
             label_periodo = "Mensal"
+            data_limite_acumulado = df_mes_base['Data'].max()
 
         # Identificação de investimentos no set de métricas atual
         is_invest_met = df_para_metricas['Categoria'].str.contains("Investimento", case=False, na=False)
@@ -139,10 +141,11 @@ try:
         saidas_total_abs = desp_periodo['Valor'].abs().sum()
         saldo_mensal = Receitas_total - saidas_total_abs
 
-        # Saldo Acumulado (Sempre considera do início até a data limite do mês selecionado ou fim do ano)
-        data_limite = df_mes_base['Data'].max() if not ver_tudo else df['Data'].max()
-        df_acum_temp = df[df['Data'] <= data_limite].copy()
+        # --- LÓGICA DE SALDO ACUMULADO CORRIGIDA ---
+        # Considera todos os lançamentos desde o início até a data final do período visualizado
+        df_acum_temp = df[df['Data'] <= data_limite_acumulado].copy()
         is_invest_acum = df_acum_temp['Categoria'].str.contains("Investimento", case=False, na=False)
+        # Invertemos o sinal do investimento para o cálculo do saldo de caixa:
         df_acum_temp.loc[is_invest_acum, 'Valor'] = -df_acum_temp.loc[is_invest_acum, 'Valor']
         saldo_acumulado = df_acum_temp['Valor'].sum()
 
