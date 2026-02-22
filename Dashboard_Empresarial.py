@@ -198,50 +198,70 @@ try:
         else:
             st.info("Nenhum registro de 'Rendimentos' encontrado para este período.")
 
-        # --- NOVA ÁREA: CARTÃO DE CRÉDITO / CORPORATIVO ---
+        # --- ÁREA DO CARTÃO DE CRÉDITO ---
         st.divider()
         st.subheader("💳 Área do Cartão de Crédito")
 
 
         def calcular_fatura(row):
             dt = row['Data']
-            # Lógica solicitada: Fechamento dia 2 (Dias 1 e 2 caem no mês anterior)
             if dt.day <= 2:
                 fatura_dt = dt - pd.DateOffset(months=1)
             else:
                 fatura_dt = dt
             return fatura_dt.strftime('%m/%Y')
 
-
-        # Filtro para abranger tanto "Cartão de Crédito" quanto "Cartão Corporativo"
-        df_cartao_base = df[
-            df['Forma de Pagamento'].str.contains("Cartão de Crédito|Cartão Corporativo", case=False, na=False)].copy()
+        # Filtro ajustado para pegar "Cartão de Crédito" OU "Cartão Corporativo"
+        df_cartao_base = df[df['Forma de Pagamento'].str.contains("Cartão de Crédito|Cartão Corporativo", case=False, na=False)].copy()
 
         if not df_cartao_base.empty:
             df_cartao_base['Mes_Fatura'] = df_cartao_base.apply(calcular_fatura, axis=1)
 
+            # Gráfico de Visão de Faturas
             df_faturas = df_cartao_base.groupby('Mes_Fatura')['Valor'].sum().abs().reset_index()
             df_faturas['Data_Ref'] = pd.to_datetime(df_faturas['Mes_Fatura'], format='%m/%Y')
             df_faturas = df_faturas.sort_values('Data_Ref')
 
+            # --- VALOR TOTAL DA FATURA ATUAL ABAIXO DO TÍTULO ---
             valor_fatura_atual = df_faturas.loc[df_faturas['Mes_Fatura'] == mes_visual, 'Valor'].sum()
             st.metric(f"Total da Fatura ({mes_visual})", f"R$ {valor_fatura_atual:,.2f}")
 
             fig_cartao = px.bar(
-                df_faturas, x='Mes_Fatura', y='Valor',
-                color_discrete_sequence=["#9b59b6"], template="plotly_dark",
-                labels={"Valor": "Total (R$)", "Mes_Fatura": "Mês da Fatura"}
+                df_faturas,
+                x='Mes_Fatura',
+                y='Valor',
+                title="Visão por Fatura",
+                color_discrete_sequence=["#9b59b6"],
+                template="plotly_dark",
+                labels={"Valor": "Valor da Fatura (R$)", "Mes_Fatura": "Mês da Fatura"}
+            )
+            fig_cartao.update_traces(
+                hovertemplate="<b>Fatura:</b> %{x}<br><b>Valor Total:</b> R$ %{y:,.2f}<extra></extra>"
             )
             st.plotly_chart(fig_cartao, use_container_width=True)
 
-            # Tabela detalhada da fatura do mês selecionado
-            df_fatura_detalhe = df_cartao_base[df_cartao_base['Mes_Fatura'] == mes_visual].copy()
-            if not df_fatura_detalhe.empty:
-                with st.expander(f"Ver detalhes da fatura de {mes_visual}"):
-                    df_exibir = df_fatura_detalhe[['Data', 'Categoria', 'Valor', 'Descrição (Opcional)']].copy()
-                    df_exibir['Data'] = df_exibir['Data'].dt.strftime('%d/%m/%Y')
-                    st.dataframe(df_exibir.style.format({"Valor": "R$ {:,.2f}"}), use_container_width=True,
-                                 hide_index=True)
+            # Tabela de lançamentos que pertencem à fatura do mês visualizado
+            df_fatura_atual = df_cartao_base[df_cartao_base['Mes_Fatura'] == mes_visual].copy()
+
+            if not df_fatura_atual.empty:
+                st.markdown(f"**Lançamentos da Fatura de {mes_visual}:**")
+
+                df_fatura_lista = df_fatura_atual[
+                    ['Data', 'Categoria', 'Valor', 'Parcelas', 'Descrição (Opcional)']].copy()
+                df_fatura_lista['Data'] = df_fatura_lista['Data'].dt.strftime('%d/%m/%Y')
+
+
+                def color_valor_custom(val):
+                    color = '#2ecc71' if val > 0 else '#e74c3c'
+                    return f'color: {color}; font-weight: bold'
+
+
+                fatura_styled = (
+                    df_fatura_lista.style
+                    .map(color_valor_custom, subset=['Valor'])
+                    .format({"Valor": "R$ {:,.2f}"})
+                )
+                st.dataframe(fatura_styled, use_container_width=True, hide_index=True)
 
         # --- ANÁLISES MENSAIS (Distribuição e Balanço) ---
         st.divider()
@@ -305,7 +325,7 @@ try:
                 labels={"Valor_Abs": "Total (R$)", col_freq: "Recorrência"}
             )
             fig_frequencia.update_traces(
-                hovertemplate=f"<b>{col_freq}:</b> %{{x}}<br><b>Total:</b> R$ %{{y:,.2f}}<extra></extra>"
+                hovertemplate=f"<b>{col_freq}:</b> %{{x}}<br><b>Total:</b> R$ %{{y:,.2f}<extra></extra>"
             )
             st.plotly_chart(fig_frequencia, use_container_width=True)
         else:
