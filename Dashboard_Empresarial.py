@@ -168,7 +168,7 @@ try:
             hovertemplate="<b>Data:</b> %{x|%d/%m/%Y}<br><b>Valor Real:</b> R$ %{customdata[1]:,.2f}<br><b>Categoria:</b> %{customdata[0]}<extra></extra>")
         st.plotly_chart(fig_evolucao, use_container_width=True)
 
-        # --- AJUSTE SOLICITADO: SEÇÃO DE RENDIMENTOS ---
+        # --- SEÇÃO DE RENDIMENTOS ---
         st.divider()
         st.subheader(f"📈 Evolução de Rendimentos ({texto_periodo})")
 
@@ -193,7 +193,6 @@ try:
             fig_rend.update_traces(
                 hovertemplate="<b>Data:</b> %{x|%d/%m/%Y}<br><b>Rendimento:</b> R$ %{y:,.2f}<extra></extra>")
             st.plotly_chart(fig_rend, use_container_width=True)
-            # MENSAGEM ADICIONAL ABAIXO DO GRÁFICO
             st.info(f"🍃 Saldo de movimentações em rendimentos em {texto_periodo}: R$ {total_rend:,.2f}")
         else:
             st.info("Nenhum registro de 'Rendimentos' encontrado para este período.")
@@ -211,18 +210,16 @@ try:
                 fatura_dt = dt
             return fatura_dt.strftime('%m/%Y')
 
-        # REGRA ADICIONADA: Busca Cartão de Crédito e Cartão Corporativo
+        # Inclui Cartão de Crédito e Cartão Corporativo conforme detectado na sua planilha
         df_cartao_base = df[df['Forma de Pagamento'].str.contains("Cartão de Crédito|Cartão Corporativo", case=False, na=False)].copy()
 
         if not df_cartao_base.empty:
             df_cartao_base['Mes_Fatura'] = df_cartao_base.apply(calcular_fatura, axis=1)
 
-            # Gráfico de Visão de Faturas
             df_faturas = df_cartao_base.groupby('Mes_Fatura')['Valor'].sum().abs().reset_index()
             df_faturas['Data_Ref'] = pd.to_datetime(df_faturas['Mes_Fatura'], format='%m/%Y')
             df_faturas = df_faturas.sort_values('Data_Ref')
 
-            # --- VALOR TOTAL DA FATURA ATUAL ABAIXO DO TÍTULO ---
             valor_fatura_atual = df_faturas.loc[df_faturas['Mes_Fatura'] == mes_visual, 'Valor'].sum()
             st.metric(f"Total da Fatura ({mes_visual})", f"R$ {valor_fatura_atual:,.2f}")
 
@@ -235,20 +232,20 @@ try:
                 template="plotly_dark",
                 labels={"Valor": "Valor da Fatura (R$)", "Mes_Fatura": "Mês da Fatura"}
             )
-            # CORREÇÃO DE ERRO: Removido 'f' da string para evitar erro de chaves no Plotly
             fig_cartao.update_traces(
                 hovertemplate="<b>Fatura:</b> %{x}<br><b>Valor Total:</b> R$ %{y:,.2f}<extra></extra>"
             )
             st.plotly_chart(fig_cartao, use_container_width=True)
 
-            # Tabela de lançamentos que pertencem à fatura do mês visualizado
+            # Tabela de lançamentos da fatura
             df_fatura_atual = df_cartao_base[df_cartao_base['Mes_Fatura'] == mes_visual].copy()
 
             if not df_fatura_atual.empty:
                 st.markdown(f"**Lançamentos da Fatura de {mes_visual}:**")
 
+                # --- AJUSTE: REMOVIDA A COLUNA 'Parcelas' QUE NÃO EXISTE NA SUA PLANILHA ---
                 df_fatura_lista = df_fatura_atual[
-                    ['Data', 'Categoria', 'Valor', 'Parcelas', 'Descrição (Opcional)']].copy()
+                    ['Data', 'Categoria', 'Valor', 'Descrição (Opcional)']].copy()
                 df_fatura_lista['Data'] = df_fatura_lista['Data'].dt.strftime('%d/%m/%Y')
 
 
@@ -264,7 +261,7 @@ try:
                 )
                 st.dataframe(fatura_styled, use_container_width=True, hide_index=True)
 
-        # --- ANÁLISES MENSAIS (Distribuição e Balanço) ---
+        # --- ANÁLISES MENSAIS ---
         st.divider()
         st.header("🎯 Análises Mensais")
 
@@ -296,20 +293,17 @@ try:
             fig_bar.update_traces(hovertemplate="<b>Status:</b> %{x}<br><b>Total:</b> R$ %{y:,.2f}<extra></extra>")
             st.plotly_chart(fig_bar, use_container_width=True)
 
-        # --- NOVO GRÁFICO: FREQUÊNCIA DOS GASTOS (Ajustado para respeitar filtros de abas e meses) ---
+        # --- GRÁFICO: FREQUÊNCIA DOS GASTOS ---
         st.subheader("🔄 Frequência dos Gastos")
 
-        # Identifica a coluna correta (Fluxo conforme sua imagem)
         col_freq = 'Fluxo' if 'Fluxo' in df.columns else (
             'Frequência' if 'Frequência' in df.columns else (
                 'Frequencia' if 'Frequencia' in df.columns else None))
 
         if col_freq and not df_mes_saidas.empty:
-            # Usamos o df_mes_saidas pois ele já contém os dados da aba correta e respeita o filtro de categorias/mês
             df_freq = df_mes_saidas.copy()
             df_freq['Valor_Abs'] = df_freq['Valor'].abs()
 
-            # Filtra para não mostrar 'Receitas' e agrupa pelo tipo de recorrência
             df_freq_plot = df_freq[df_freq[col_freq] != 'Receitas'].groupby(col_freq)["Valor_Abs"].sum().reset_index()
 
             fig_frequencia = px.bar(
@@ -325,9 +319,9 @@ try:
                     col_freq: ["Custos Fixos", "Custos Variáveis", "Fixos", "Recorrentes", "Não Recorrentes"]},
                 labels={"Valor_Abs": "Total (R$)", col_freq: "Recorrência"}
             )
-            # CORREÇÃO DE ERRO: Removido 'f' da string
+            # CORREÇÃO: Sintaxe de hovertemplate para evitar erro de f-string
             fig_frequencia.update_traces(
-                hovertemplate="<b>" + col_freq + ":</b> %{x}<br><b>Total:</b> R$ %{y:,.2f}<extra></extra>"
+                hovertemplate="<b>Tipo:</b> %{x}<br><b>Total:</b> R$ %{y:,.2f}<extra></extra>"
             )
             st.plotly_chart(fig_frequencia, use_container_width=True)
         else:
@@ -342,11 +336,9 @@ try:
                 [resumo_cat, pd.DataFrame({"Categoria": ["TOTAL"], "Valor": [resumo_cat["Valor"].sum()]})],
                 ignore_index=True)
 
-
             def highlight_total(row):
                 return ['background-color: #990000; color: white; font-weight: bold' if row.Categoria == 'TOTAL' else ''
                         for _ in row]
-
 
             st.dataframe(resumo_final.style.apply(highlight_total, axis=1).format({"Valor": "R$ {:,.2f}"}),
                          use_container_width=True, hide_index=True)
@@ -363,21 +355,17 @@ try:
             st.divider()
             ordem = st.radio("Ordenar por data:", ["Mais recentes", "Mais antigas"], horizontal=True)
 
-            # --- AJUSTE SOLICITADO: REMOÇÃO DA COLUNA DASHBOARD E TRATAMENTO DE 'NONE' ---
             df_lista = df_mes.copy()
             if 'Dashboards 📊' in df_lista.columns:
                 df_lista = df_lista.drop(columns=['Dashboards 📊'])
 
-            # Remove as últimas colunas de controle interno e garante que strings nulas fiquem vazias
             df_lista = df_lista.iloc[:, :-3].fillna("")
             df_lista = df_lista.sort_values("Data", ascending=(ordem == "Mais antigas"))
             df_lista['Data'] = df_lista['Data'].dt.strftime('%d/%m/%Y')
 
-
             def color_valor_custom(val):
                 color = '#2ecc71' if val > 0 else '#e74c3c'
                 return f'color: {color}; font-weight: bold'
-
 
             st.dataframe(df_lista.style.map(color_valor_custom, subset=['Valor']).format({"Valor": "R$ {:,.2f}"}),
                          use_container_width=True, hide_index=True)
