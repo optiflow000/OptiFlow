@@ -349,7 +349,14 @@ try:
 
             st.divider()
             ordem = st.radio("Ordenar por data:", ["Mais recentes", "Mais antigas"], horizontal=True)
-            df_lista = df_mes.iloc[:, :-3].copy()
+
+            # --- AJUSTE SOLICITADO: REMOÇÃO DA COLUNA DASHBOARD E TRATAMENTO DE 'NONE' ---
+            df_lista = df_mes.copy()
+            if 'Dashboards 📊' in df_lista.columns:
+                df_lista = df_lista.drop(columns=['Dashboards 📊'])
+
+            # Remove as últimas colunas de controle interno e garante que strings nulas fiquem vazias
+            df_lista = df_lista.iloc[:, :-3].fillna("")
             df_lista = df_lista.sort_values("Data", ascending=(ordem == "Mais antigas"))
             df_lista['Data'] = df_lista['Data'].dt.strftime('%d/%m/%Y')
 
