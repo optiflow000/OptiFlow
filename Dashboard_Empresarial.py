@@ -7,8 +7,7 @@ st.set_page_config(layout="wide", page_title="Dashboard Financeiro Empresarial")
 
 # --- MAPEAMENTO DOS DADOS (IDs e GIDs) ---
 # O SHEET_ID é o código entre /d/ e /edit na sua URL
-SHEET_ID = "1qlJAdw_aXcVTBf_ELZb5o2dzD8jjUSeKaCPZ6Hzz1rM"
-
+SHEET_ID = "1qIJAdw_aXcVTbf_ELZb5o2dzD8jjUSeKaCPZ6Hzz1rM"
 # Dicionário com os GIDs que você mapeou para cada aba
 MAPA_GIDS = {
     "2022": "1031075012",
