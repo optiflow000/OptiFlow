@@ -295,28 +295,41 @@ try:
             fig_bar.update_traces(hovertemplate="<b>Status:</b> %{x}<br><b>Total:</b> R$ %{y:,.2f}<extra></extra>")
             st.plotly_chart(fig_bar, use_container_width=True)
 
-        # --- NOVO GRÁFICO: FREQUÊNCIA DOS GASTOS (Antiga Recorrência) ---
+        # --- NOVO GRÁFICO: FREQUÊNCIA DOS GASTOS (Ajustado para respeitar filtros de abas e meses) ---
         st.subheader("🔄 Frequência dos Gastos")
-        # Ajuste para usar a coluna 'Fluxo' conforme solicitado nas imagens
-        col_fluxo = 'Fluxo' if 'Fluxo' in df.columns else None
 
-        if col_fluxo and not df_mes_saidas.empty:
+        # Identifica a coluna correta (Fluxo conforme sua imagem)
+        col_freq = 'Fluxo' if 'Fluxo' in df.columns else (
+            'Frequência' if 'Frequência' in df.columns else (
+                'Frequencia' if 'Frequencia' in df.columns else None))
+
+        if col_freq and not df_mes_saidas.empty:
+            # Usamos o df_mes_saidas pois ele já contém os dados da aba correta e respeita o filtro de categorias/mês
             df_freq = df_mes_saidas.copy()
             df_freq['Valor_Abs'] = df_freq['Valor'].abs()
-            # Filtra para ignorar receitas e agrupar pelo fluxo (Ex: Custos Fixos, Custos Variáveis)
-            df_freq_plot = df_freq[df_freq[col_fluxo] != 'Receitas'].groupby(col_fluxo)["Valor_Abs"].sum().reset_index()
+
+            # Filtra para não mostrar 'Receitas' e agrupa pelo tipo de recorrência
+            df_freq_plot = df_freq[df_freq[col_freq] != 'Receitas'].groupby(col_freq)["Valor_Abs"].sum().reset_index()
 
             fig_frequencia = px.bar(
-                df_freq_plot, x=col_fluxo, y="Valor_Abs", color=col_fluxo, template="plotly_dark",
-                color_discrete_map={"Custos Fixos": "#5DADE2", "Custos Variáveis": "#F4D03F", "Não Recorrentes": "#e74c3c"},
-                labels={"Valor_Abs": "Total (R$)", col_fluxo: "Recorrência"}
+                df_freq_plot, x=col_freq, y="Valor_Abs", color=col_freq, template="plotly_dark",
+                color_discrete_map={
+                    "Custos Fixos": "#5DADE2",
+                    "Custos Variáveis": "#F4D03F",
+                    "Fixos": "#5DADE2",
+                    "Recorrentes": "#F4D03F",
+                    "Não Recorrentes": "#e74c3c"
+                },
+                category_orders={
+                    col_freq: ["Custos Fixos", "Custos Variáveis", "Fixos", "Recorrentes", "Não Recorrentes"]},
+                labels={"Valor_Abs": "Total (R$)", col_freq: "Recorrência"}
             )
             fig_frequencia.update_traces(
-                hovertemplate="<b>Recorrência:</b> %{x}<br><b>Total:</b> R$ %{y:,.2f}<extra></extra>"
+                hovertemplate=f"<b>{col_freq}:</b> %{{x}}<br><b>Total:</b> R$ %{{y:,.2f}}<extra></extra>"
             )
             st.plotly_chart(fig_frequencia, use_container_width=True)
         else:
-            st.info("Dados de 'Fluxo' não encontrados para gerar o gráfico.")
+            st.info(f"Dados de recorrência/fluxo não encontrados na aba de {ano_escolhido}.")
 
         # --- RESUMO POR CATEGORIA ---
         st.markdown("### 📋 Resumo de Gastos por Categoria")
