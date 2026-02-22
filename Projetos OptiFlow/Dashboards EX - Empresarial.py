@@ -1,35 +1,37 @@
 import streamlit as st
 import pandas as pd
-import gspread
-from google.oauth2.service_account import Credentials
 import plotly.express as px
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
-st.set_page_config(layout="wide", page_title="Controle Financeiro Real-Time")
+st.set_page_config(layout="wide", page_title="Dashboard Financeiro Empresarial")
+
+# --- MAPEAMENTO DOS DADOS (IDs e GIDs) ---
+# O SHEET_ID é o código entre /d/ e /edit na sua URL
+SHEET_ID = "1qlJAdw_aXcVTBf_ELZb5o2dzD8jjUSeKaCPZ6Hzz1rM"
+
+# Dicionário com os GIDs que você mapeou para cada aba
+MAPA_GIDS = {
+    "2022": "1031075012",
+    "2023": "563253526",
+    "2024": "239459010",
+    "2025": "1647013799",
+    "2026": "45417934"
+}
 
 
 # --- FUNÇÃO PARA CARREGAR DADOS ---
 @st.cache_data(ttl=60)
-def load_data():
-    scope = ["https://www.googleapis.com/auth/spreadsheets",
-             "https://www.googleapis.com/auth/drive"]
+def load_data(ano_selecionado):
+    # Busca o GID correspondente ao ano escolhido no dicionário
+    gid = MAPA_GIDS.get(ano_selecionado)
 
-    try:
-        creds_info = st.secrets["gcp_service_account"]
-        creds = Credentials.from_service_account_info(creds_info, scopes=scope)
-    except Exception:
-        try:
-            creds = Credentials.from_service_account_file("Projetos Pessoais/credentials.json", scopes=scope)
-        except:
-            creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
+    # Monta a URL de exportação CSV dinâmica
+    URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv&gid={gid}"
 
-    client = gspread.authorize(creds)
-    spreadsheet = client.open("Controle Financeiro Mensal com Gráficos")
-    sheet = spreadsheet.worksheet("Controle de Gastos")
+    # Carrega o CSV direto para o Pandas
+    df = pd.read_csv(URL)
 
-    data = sheet.get_all_records()
-    df = pd.DataFrame(data)
-
+    # --- TRATAMENTO DOS DADOS ---
     if 'Valor' in df.columns:
         df['Valor'] = (
             df['Valor']
@@ -47,20 +49,25 @@ def load_data():
         df = df.dropna(subset=['Data']).sort_values('Data')
         df['Mes_Ano'] = df['Data'].dt.strftime('%Y-%m')
         df['Mes_Ano_Exibicao'] = df['Data'].dt.strftime('%m/%Y')
-        # --- ALTERAÇÃO 1: Adicionando coluna de Ano ---
         df['Ano'] = df['Data'].dt.year.astype(str)
 
     return df
 
 
-# --- INTERFACE DO DASHBOARD ---
+# --- INTERFACE (SIDEBAR E DASHBOARD) ---
+st.sidebar.title("Filtros")
+
+# Seletor de Ano que define qual aba será puxada
+ano_escolhido = st.sidebar.selectbox("Selecione o Ano", list(MAPA_GIDS.keys()))
+
 try:
-    df = load_data()
+    # Chama a função passando o ano escolhido pelo usuário
+    df = load_data(ano_escolhido)
 
     if df.empty:
-        st.warning("Aguardando dados válidos na planilha.")
+        st.warning(f"A aba de {ano_escolhido} parece não ter dados válidos.")
     else:
-        st.title("📊 Meu Dashboard Financeiro")
+        st.title(f"📊 Dashboard Financeiro - {ano_escolhido}")
 
         # --- SIDEBAR (FILTROS) ---
         st.sidebar.header("Configurações de Filtro")
