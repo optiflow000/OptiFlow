@@ -5,8 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="20a660da-d4f9-40bd-9bfe-0db1cb003842" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Dashboard_Empresarial.py" beforeDir="false" afterPath="$PROJECT_DIR$/Dashboard_Empresarial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../OptiFlow_Novo/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,7 +29,7 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/optiflow000/OptiFlow.git&quot;,
+    &quot;url&quot;: &quot;https://github.com/optiflow000/Optiflow.git&quot;,
     &quot;accountId&quot;: &quot;7841fbcf-a330-4180-8741-38822d4128bb&quot;
   }
 }</component>
@@ -42,22 +41,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "ai.playground.ignore.import.keys.banner.in.settings": "true",
-    "git-widget-placeholder": "main",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;ai.playground.ignore.import.keys.banner.in.settings&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -80,6 +79,21 @@
       <workItem from="1771787573064" duration="2000" />
       <workItem from="1771787587021" duration="6000" />
       <workItem from="1771787596640" duration="793000" />
+      <workItem from="1771788421994" duration="931000" />
+      <workItem from="1771790229450" duration="5987000" />
+      <workItem from="1771797249246" duration="4065000" />
+      <workItem from="1771802280464" duration="107000" />
+      <workItem from="1771810976951" duration="5000" />
+      <workItem from="1771811027395" duration="22000" />
+      <workItem from="1771811064356" duration="1000" />
+      <workItem from="1771811080119" duration="4000" />
+      <workItem from="1771871595560" duration="81000" />
+      <workItem from="1771871713154" duration="3000" />
+      <workItem from="1771871725019" duration="95000" />
+      <workItem from="1771871905494" duration="16000" />
+      <workItem from="1771871937387" duration="19000" />
+      <workItem from="1771871976039" duration="107000" />
+      <workItem from="1771872091798" duration="4114000" />
     </task>
     <servers />
   </component>
