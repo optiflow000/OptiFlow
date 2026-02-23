@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
-st.set_page_config(layout="wide", page_title="Dashboard Financeiro Empresarial")
+st.set_page_config(layout="wide", page_title="Dashboard Financeiro Pessoal")
 
 # --- MAPEAMENTO DOS DADOS (IDs e GIDs) ---
 # O SHEET_ID é o código entre /d/ e /edit na sua URL
