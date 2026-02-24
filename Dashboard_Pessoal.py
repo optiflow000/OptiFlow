@@ -203,20 +203,20 @@ try:
             hovertemplate="<b>Data:</b> %{x|%d/%m/%Y}<br><b>Valor Real:</b> R$ %{customdata[1]:,.2f}<br><b>Categoria:</b> %{customdata[0]}<extra></extra>")
         st.plotly_chart(fig_evolucao, use_container_width=True)
 
-        # --- SEÇÃO DE RENDIMENTOS ---
+        # --- SEÇÃO DE INVESTIMENTOS ---
         st.divider()
-        st.subheader(f"📈 Evolução de Rendimentos ({texto_periodo})")
+        st.subheader(f"📈 Evolução de Investimentos ({texto_periodo})")
 
-        # Filtra os dados apenas para a categoria "Rendimentos"
+        # Filtra os dados apenas para a categoria que contém "Investimento"
         if ver_tudo:
-            df_rend = df[df["Categoria"].str.contains("Rendimentos", case=False, na=False)]
+            df_rend = df[df["Categoria"].str.contains("Investimento", case=False, na=False)]
         else:
-            df_rend = df_mes_base[df_mes_base["Categoria"].str.contains("Rendimentos", case=False, na=False)]
+            df_rend = df_mes_base[df_mes_base["Categoria"].str.contains("Investimento", case=False, na=False)]
 
         if not df_rend.empty:
             total_rend = df_rend["Valor"].sum()
             st.write(
-                f'<p style="font-size:16px; font-weight:bold;">Total em Rendimentos: <span style="color:#2ecc71;">R$ {total_rend:,.2f}</span></p>',
+                f'<p style="font-size:16px; font-weight:bold;">Total em Investimentos: <span style="color:#2ecc71;">R$ {total_rend:,.2f}</span></p>',
                 unsafe_allow_html=True)
 
             df_rend_plot = df_rend.groupby(['Data', 'Categoria'])['Valor'].sum().reset_index()
@@ -226,11 +226,11 @@ try:
 
             fig_rend.update_xaxes(tickformat="%d/%m/%Y", dtick=intervalo_ms, tick0=data_referencia, tickmode="linear")
             fig_rend.update_traces(
-                hovertemplate="<b>Data:</b> %{x|%d/%m/%Y}<br><b>Rendimento:</b> R$ %{y:,.2f}<extra></extra>")
+                hovertemplate="<b>Data:</b> %{x|%d/%m/%Y}<br><b>Valor:</b> R$ %{y:,.2f}<extra></extra>")
             st.plotly_chart(fig_rend, use_container_width=True)
-            st.info(f"🍃 Saldo de movimentações em rendimentos em {texto_periodo}: R$ {total_rend:,.2f}")
+            st.info(f"🍃 Saldo de movimentações em investimentos em {texto_periodo}: R$ {total_rend:,.2f}")
         else:
-            st.info("Nenhum registro de 'Rendimentos' encontrado para este período.")
+            st.info("Nenhum registro de 'Investimento' encontrado para este período.")
 
         # --- ÁREA DO CARTÃO DE CRÉDITO ---
         st.divider()
