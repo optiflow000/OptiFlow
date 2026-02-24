@@ -395,8 +395,11 @@ try:
             ordem = st.radio("Ordenar por data:", ["Mais recentes", "Mais antigas"], horizontal=True)
 
             df_lista = df_mes.copy()
-            if 'Dashboards 📊' in df_lista.columns:
-                df_lista = df_lista.drop(columns=['Dashboards 📊'])
+
+            # --- AJUSTE: REMOVENDO A COLUNA DASHBOARD ---
+            colunas_para_remover = [c for c in df_lista.columns if 'dashboard' in c.lower()]
+            if colunas_para_remover:
+                df_lista = df_lista.drop(columns=colunas_para_remover)
 
             df_lista = df_lista.iloc[:, :-3].fillna("")
             df_lista = df_lista.sort_values("Data", ascending=(ordem == "Mais antigas"))

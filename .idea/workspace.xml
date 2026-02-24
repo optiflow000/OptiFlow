@@ -12,6 +12,13 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
@@ -93,7 +100,8 @@
       <workItem from="1771871905494" duration="16000" />
       <workItem from="1771871937387" duration="19000" />
       <workItem from="1771871976039" duration="107000" />
-      <workItem from="1771872091798" duration="4114000" />
+      <workItem from="1771872091798" duration="4677000" />
+      <workItem from="1771896779088" duration="1259000" />
     </task>
     <servers />
   </component>
