@@ -143,6 +143,7 @@ try:
 
         # --- LÓGICA DE SALDO ACUMULADO (SOMA ANOS ANTERIORES) ---
         saldo_anos_anteriores = 0.0
+        invest_anos_anteriores = 0.0
         anos_disponiveis = sorted(list(MAPA_GIDS.keys()))
 
         for ano in anos_disponiveis:
@@ -151,7 +152,11 @@ try:
                     df_ant = load_data(ano)
                     if not df_ant.empty:
                         is_invest_ant = df_ant['Categoria'].str.contains("Investimento", case=False, na=False)
-                        # Copia para não alterar o cache
+
+                        # Acumulado de Investimentos (Soma direta da coluna Valor onde é investimento)
+                        invest_anos_anteriores += df_ant.loc[is_invest_ant, 'Valor'].sum()
+
+                        # Copia para não alterar o cache (Saldo Bancário)
                         df_ant_calc = df_ant.copy()
                         df_ant_calc.loc[is_invest_ant, 'Valor'] = -df_ant_calc.loc[is_invest_ant, 'Valor']
                         saldo_anos_anteriores += df_ant_calc['Valor'].sum()
@@ -163,6 +168,10 @@ try:
         # Saldo do ano atual até a data limite
         df_acum_atual = df[df['Data'] <= data_limite_acumulado].copy()
         is_invest_acum = df_acum_atual['Categoria'].str.contains("Investimento", case=False, na=False)
+
+        # Investimento acumulado atual: Passado + atual
+        invest_acumulado_total = invest_anos_anteriores + df_acum_atual.loc[is_invest_acum, 'Valor'].sum()
+
         df_acum_atual.loc[is_invest_acum, 'Valor'] = -df_acum_atual.loc[is_invest_acum, 'Valor']
         saldo_ano_atual = df_acum_atual['Valor'].sum()
 
@@ -216,7 +225,11 @@ try:
         if not df_rend.empty:
             total_rend = df_rend["Valor"].sum()
             st.write(
-                f'<p style="font-size:16px; font-weight:bold;">Total em Investimentos: <span style="color:#2ecc71;">R$ {total_rend:,.2f}</span></p>',
+                f'<p style="font-size:16px; font-weight:bold; margin-bottom: 0px;">Total em Investimentos ({label_periodo}): <span style="color:#2ecc71;">R$ {total_rend:,.2f}</span></p>',
+                unsafe_allow_html=True)
+            # --- NOVO AJUSTE: Total Atualmente (Acumulado de todos os anos) ---
+            st.write(
+                f'<p style="font-size:16px; font-weight:bold;">Total Atualmente: <span style="color:#5DADE2;">R$ {invest_acumulado_total:,.2f}</span></p>',
                 unsafe_allow_html=True)
 
             df_rend_plot = df_rend.groupby(['Data', 'Categoria'])['Valor'].sum().reset_index()
@@ -298,7 +311,7 @@ try:
                 )
                 st.dataframe(fatura_styled, use_container_width=True, hide_index=True)
 
-        # --- ANÁLISES MENSAIS ---
+        # --- ANÁLISES MENSAis ---
         st.divider()
         st.header("🎯 Análises Mensais")
 
