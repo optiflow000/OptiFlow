@@ -354,7 +354,7 @@ try:
                 },
                 category_orders={
                     col_freq: ["Custos Fixos", "Custos Variáveis", "Fixos", "Recorrentes", "Não Recorrentes"]},
-                labels={"Valor_Abs": "Total (R$)", col_freq: "Recorrência"}
+                labels={"Valor_Abs": "Total (R$)", col_freq: "Frequência"}
             )
             # CORREÇÃO: Sintaxe de hovertemplate para evitar erro de f-string
             fig_frequencia.update_traces(

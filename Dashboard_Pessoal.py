@@ -374,7 +374,7 @@ try:
                         "Não Frequentes": "#e74c3c"
                     },
                     category_orders={col_freq: categorias_alvo},
-                    labels={"Valor_Abs": "Total (R$)", col_freq: "Recorrência"}
+                    labels={"Valor_Abs": "Total (R$)", col_freq: "Frequência"}
                 )
 
                 fig_frequencia.update_traces(
