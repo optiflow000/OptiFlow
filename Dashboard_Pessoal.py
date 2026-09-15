@@ -437,4 +437,4 @@ try:
                          use_container_width=True, hide_index=True)
 
 except Exception as e:
-    st.error(f"Erro crítico no processamento: {e}"))
+    st.error(f"Erro crítico no processamento: {e}")
