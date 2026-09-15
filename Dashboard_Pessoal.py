@@ -227,7 +227,6 @@ try:
             st.write(
                 f'<p style="font-size:16px; font-weight:bold; margin-bottom: 0px;">Total em Investimentos ({label_periodo}): <span style="color:#2ecc71;">R$ {total_rend:,.2f}</span></p>',
                 unsafe_allow_html=True)
-            # --- NOVO AJUSTE: Total Atualmente (Acumulado de todos os anos) ---
             st.write(
                 f'<p style="font-size:16px; font-weight:bold;">Total Atualmente: <span style="color:#5DADE2;">R$ {invest_acumulado_total:,.2f}</span></p>',
                 unsafe_allow_html=True)
@@ -293,7 +292,6 @@ try:
             if not df_fatura_atual.empty:
                 st.markdown(f"**Lançamentos da Fatura de {mes_visual}:**")
 
-                # --- AJUSTE REALIZADO: .fillna("") para remover o "None" da visualização ---
                 df_fatura_lista = df_fatura_atual[
                     ['Data', 'Categoria', 'Valor', 'Descrição (Opcional)']].fillna("").copy()
                 df_fatura_lista['Data'] = df_fatura_lista['Data'].dt.strftime('%d/%m/%Y')
@@ -311,7 +309,7 @@ try:
                 )
                 st.dataframe(fatura_styled, use_container_width=True, hide_index=True)
 
-        # --- ANÁLISES MENSAis ---
+        # --- ANÁLISES MENSAIS ---
         st.divider()
         st.header("🎯 Análises Mensais")
 
@@ -346,15 +344,14 @@ try:
         # --- GRÁFICO: VARIABILIDADE DOS GASTOS ---
         st.subheader("🔄 Variabilidade dos Gastos")
 
-        col_freq = 'Variabilidade' if 'Variabilidade' in df.columns else (
-            'Variabilidade' if 'Variabilidade' in df.columns else (
-                'Fluxo' if 'Fluxo' in df.columns else None))
+        # Detecta dinamicamente a coluna equivalente a Variabilidade
+        col_freq = next((c for c in ['Variabilidade', 'Frequência', 'Frequencia', 'Fluxo'] if c in df.columns), None)
 
         if col_freq and not df_mes_saidas.empty:
             df_freq = df_mes_saidas.copy()
             df_freq['Valor_Abs'] = df_freq['Valor'].abs()
 
-            # --- AJUSTE SOLICITADO: Filtrar apenas as categorias específicas ---
+            # Categorias aceitas para exibição
             categorias_alvo = ["Fixos", "Variável"]
             df_freq_plot = df_freq[df_freq[col_freq].isin(categorias_alvo)]
 
@@ -370,8 +367,7 @@ try:
                     template="plotly_dark",
                     color_discrete_map={
                         "Fixos": "#5DADE2",
-                        "Váriavel": "#F4D03F",
-
+                        "Variável": "#F4D03F"
                     },
                     category_orders={col_freq: categorias_alvo},
                     labels={"Valor_Abs": "Total (R$)", col_freq: "Variabilidade"}
@@ -382,9 +378,9 @@ try:
                 )
                 st.plotly_chart(fig_frequencia, use_container_width=True)
             else:
-                st.info("Nenhum gasto encontrado nas categorias: Fixos, Frequentes ou Não Frequentes.")
+                st.info("Nenhum gasto encontrado nas categorias: Fixos ou Variável.")
         else:
-            st.info(f"Dados de Variabilidade/fluxo não encontrados na aba de {ano_escolhido}.")
+            st.info(f"Dados de Variabilidade não encontrados na aba de {ano_escolhido}.")
 
         # --- RESUMO POR CATEGORIA ---
         st.markdown("### 📋 Resumo de Gastos por Categoria")
@@ -418,7 +414,7 @@ try:
 
             df_lista = df_mes.copy()
 
-            # --- AJUSTE: REMOVENDO A COLUNA DASHBOARD ---
+            # --- REMOVENDO A COLUNA DASHBOARD ---
             colunas_para_remover = [c for c in df_lista.columns if 'dashboard' in c.lower()]
             if colunas_para_remover:
                 df_lista = df_lista.drop(columns=colunas_para_remover)
