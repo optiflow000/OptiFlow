@@ -343,11 +343,11 @@ try:
             fig_bar.update_traces(hovertemplate="<b>Status:</b> %{x}<br><b>Total:</b> R$ %{y:,.2f}<extra></extra>")
             st.plotly_chart(fig_bar, use_container_width=True)
 
-        # --- GRÁFICO: FREQUÊNCIA DOS GASTOS ---
-        st.subheader("🔄 Frequência dos Gastos")
+        # --- GRÁFICO: VARIABILIDADE DOS GASTOS ---
+        st.subheader("🔄 Variabilidade dos Gastos")
 
-        col_freq = 'Frequência' if 'Frequência' in df.columns else (
-            'Frequencia' if 'Frequencia' in df.columns else (
+        col_freq = 'Variabilidade' if 'Variabilidade' in df.columns else (
+            'Variabilidade' if 'Variabilidade' in df.columns else (
                 'Fluxo' if 'Fluxo' in df.columns else None))
 
         if col_freq and not df_mes_saidas.empty:
@@ -355,7 +355,7 @@ try:
             df_freq['Valor_Abs'] = df_freq['Valor'].abs()
 
             # --- AJUSTE SOLICITADO: Filtrar apenas as categorias específicas ---
-            categorias_alvo = ["Fixos", "Frequentes", "Não Frequentes"]
+            categorias_alvo = ["Fixos", "Variável"]
             df_freq_plot = df_freq[df_freq[col_freq].isin(categorias_alvo)]
 
             # Agrupamento para o gráfico
@@ -370,11 +370,11 @@ try:
                     template="plotly_dark",
                     color_discrete_map={
                         "Fixos": "#5DADE2",
-                        "Frequentes": "#F4D03F",
-                        "Não Frequentes": "#e74c3c"
+                        "Váriavel": "#F4D03F",
+
                     },
                     category_orders={col_freq: categorias_alvo},
-                    labels={"Valor_Abs": "Total (R$)", col_freq: "Frequência"}
+                    labels={"Valor_Abs": "Total (R$)", col_freq: "Variabilidade"}
                 )
 
                 fig_frequencia.update_traces(
@@ -384,7 +384,7 @@ try:
             else:
                 st.info("Nenhum gasto encontrado nas categorias: Fixos, Frequentes ou Não Frequentes.")
         else:
-            st.info(f"Dados de frequência/fluxo não encontrados na aba de {ano_escolhido}.")
+            st.info(f"Dados de Variabilidade/fluxo não encontrados na aba de {ano_escolhido}.")
 
         # --- RESUMO POR CATEGORIA ---
         st.markdown("### 📋 Resumo de Gastos por Categoria")
